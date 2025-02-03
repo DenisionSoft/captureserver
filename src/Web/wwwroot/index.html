@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Tracker</title>
+    <style>
+        button { margin-top: 10px; padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <button id="sendData">Отправить данные</button>
+
+    <script>
+        let mouseData = [];
+        let lastRecordedTime = 0;
+
+        document.addEventListener("mousemove", (event) => {
+            const now = Date.now();
+            const now_date = new Date(now);
+            const now_string = now_date.toISOString();
+            if (now - lastRecordedTime > 50) { // 50ms
+                mouseData.push({ x: event.clientX, y: event.clientY, captured_at: now_string });
+                lastRecordedTime = now;
+            }
+        });
+
+        document.getElementById("sendData").addEventListener("click", async () => {
+            try {
+                await fetch("http://localhost:5000/api/v1/captures", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ captures: mouseData })
+                });
+                mouseData = [];
+            } catch (error) {
+                console.error("Ошибка:", error);
+            }
+        });
+    </script>
+</body>
+</html>

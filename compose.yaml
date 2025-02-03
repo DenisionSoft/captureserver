@@ -1,0 +1,31 @@
+﻿services:
+  postgres:
+    container_name: 'capture-postgres'
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=${PG_DB}'
+      - 'POSTGRES_USER=${PG_USER}'
+      - 'POSTGRES_PASSWORD=${PG_PASSWORD}'
+    ports:
+      - '${PG_PORT}:5432'
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${PG_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    container_name: 'capture-web'
+    build:
+      context: .
+      dockerfile: src/Web/Dockerfile
+    ports:
+      - '${WEB_PORT}:8080'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
